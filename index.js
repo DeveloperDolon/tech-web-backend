@@ -3,7 +3,7 @@ const express = require('express');
 const app = express();
 require('dotenv').config()
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -50,6 +50,37 @@ async function run() {
         res.send(result);
     })
 
+    app.get("/products/:id", async (req, res) => {
+        const id = req.params.id;
+
+        const query = {_id: new ObjectId(id)};
+
+        const result = await productCollection.findOne(query);
+        res.send(result);
+    })
+
+    app.put("/products/:id", async(req, res) => {
+        const id = req.params.id;
+        const item = req.body;
+        const filter = {_id: new Object(id)};
+        const option = {upsert : true};
+
+        const updateItem = {
+            $set: {
+                name: item.name,
+                brandName : item.brandName,
+                type : item.type,
+                rating : item.rating,
+                description : item.description,
+                price : item.price,
+                image : item.image
+            }
+        }
+
+        const result = await productCollection.updateOne(filter, updateItem, option);
+        res.send(result);
+    })
+
     app.get("/brands/:brandName", async (req, res) => {
         const name = capitalize(req.params.brandName);
         
@@ -64,7 +95,7 @@ async function run() {
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
-    // Ensures that the client will close when you finish/error
+    // Ensures that the client will close when you finish/error thter is some err
     // await client.close();
   }
 }
