@@ -36,9 +36,26 @@ async function run() {
     const productCollection = client.db("insertAssignmentNine").collection("productCollection");
 
 
+    app.get("/brands/:brandName", async (req, res) => {
+        const name = capitalize(req.params.brandName);
+        
+        const query = {brandName : name};
+        const cursor = productCollection.find(query);
+        const result = await cursor.toArray();
+        res.send(result);
+    })
+
     app.get("/brands", async (req, res) => {
         const courser = brandsCollections.find();
         const result = await courser.toArray();
+
+        res.send(result);
+    })
+
+    app.get("/brand/:name", async (req, res) => {
+        const name = capitalize(req.params.name);
+        const query = {name : name};
+        const result = await brandsCollections.findOne(query);
 
         res.send(result);
     })
@@ -52,18 +69,16 @@ async function run() {
 
     app.get("/products/:id", async (req, res) => {
         const id = req.params.id;
-
         const query = {_id: new ObjectId(id)};
-
+        console.log(id);
         const result = await productCollection.findOne(query);
         res.send(result);
     })
 
-    app.put("/products/:id", async(req, res) => {
-        const id = req.params.id;
+    app.patch("/products/:name", async(req, res) => {
+        const name = req.params.name;
         const item = req.body;
-        const filter = {_id: new Object(id)};
-        const option = {upsert : true};
+        const filter = {name:  name};
 
         const updateItem = {
             $set: {
@@ -77,18 +92,11 @@ async function run() {
             }
         }
 
-        const result = await productCollection.updateOne(filter, updateItem, option);
+        const result = await productCollection.updateOne(filter, updateItem);
         res.send(result);
     })
 
-    app.get("/brands/:brandName", async (req, res) => {
-        const name = capitalize(req.params.brandName);
-        
-        const query = {brandName : name};
-        const cursor = productCollection.find(query);
-        const result = await cursor.toArray();
-        res.send(result);
-    })
+
 
 
     // Send a ping to confirm a successful connection
