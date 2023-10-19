@@ -34,11 +34,45 @@ async function run() {
 
     const brandsCollections = client.db("insertAssignmentNine").collection("brandsColloction");
     const productCollection = client.db("insertAssignmentNine").collection("productCollection");
+    const cartCollection = client.db("insertAssignmentNine").collection("cartCollection");
 
+
+    // all functionality for get, post, and delete cart products
+    app.post("/carts", async (req, res) => {
+        const data = req.body;
+
+        const query = {_id: data._id};
+
+        const isExist = await cartCollection.findOne(query);
+
+        if(isExist) {
+            res.status(500).json({ message: 'Available' });
+            return;
+        }
+
+        const result = await cartCollection.insertOne(data);
+        res.send(result);
+    })
+
+    app.get("/carts", async (req, res) => {
+        const cursor = cartCollection.find();
+        const result = await cursor.toArray();
+
+        res.send(result);
+    })
+
+    // all functionality for post, update and get products 
+    app.get("/products/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)};
+        console.log(id);
+        const result = await productCollection.findOne(query);
+        res.send(result);
+    })
 
     app.get("/brands/:brandName", async (req, res) => {
         const name = capitalize(req.params.brandName);
-        
+
         const query = {brandName : name};
         const cursor = productCollection.find(query);
         const result = await cursor.toArray();
@@ -54,24 +88,18 @@ async function run() {
 
     app.get("/brand/:name", async (req, res) => {
         const name = capitalize(req.params.name);
+        
         const query = {name : name};
         const result = await brandsCollections.findOne(query);
-
+        
         res.send(result);
     })
+
 
     app.post("/brands", async (req, res) => {
         const product = req.body;
         
         const result = await productCollection.insertOne(product);
-        res.send(result);
-    })
-
-    app.get("/products/:id", async (req, res) => {
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)};
-        console.log(id);
-        const result = await productCollection.findOne(query);
         res.send(result);
     })
 
