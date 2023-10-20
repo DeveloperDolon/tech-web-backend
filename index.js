@@ -34,32 +34,7 @@ async function run() {
 
     const brandsCollections = client.db("insertAssignmentNine").collection("brandsColloction");
     const productCollection = client.db("insertAssignmentNine").collection("productCollection");
-    const cartCollection = client.db("insertAssignmentNine").collection("cartCollection");
 
-
-    // all functionality for get, post, and delete cart products
-    app.post("/carts", async (req, res) => {
-        const data = req.body;
-
-        const query = {_id: data._id};
-
-        const isExist = await cartCollection.findOne(query);
-
-        if(isExist) {
-            res.status(500).json({ message: 'Available' });
-            return;
-        }
-
-        const result = await cartCollection.insertOne(data);
-        res.send(result);
-    })
-
-    app.get("/carts", async (req, res) => {
-        const cursor = cartCollection.find();
-        const result = await cursor.toArray();
-
-        res.send(result);
-    })
 
     // all functionality for post, update and get products 
     app.get("/products/:id", async (req, res) => {
@@ -67,6 +42,13 @@ async function run() {
         const query = {_id: new ObjectId(id)};
         console.log(id);
         const result = await productCollection.findOne(query);
+        res.send(result);
+    })
+
+    app.get("/products", async (req, res) => {
+        const cursor = productCollection.find();
+        const result = await cursor.toArray();
+
         res.send(result);
     })
 
@@ -87,8 +69,8 @@ async function run() {
     })
 
     app.get("/brand/:name", async (req, res) => {
-        const name = capitalize(req.params.name);
-        
+        let name = req.params.name;
+
         const query = {name : name};
         const result = await brandsCollections.findOne(query);
         
