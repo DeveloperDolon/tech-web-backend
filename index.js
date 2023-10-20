@@ -30,10 +30,56 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    // await client.connect();
+    await client.connect();
 
     const brandsCollections = client.db("insertAssignmentNine").collection("brandsColloction");
     const productCollection = client.db("insertAssignmentNine").collection("productCollection");
+
+    // all functionality for cart operations
+    app.post("/cart/:email", async (req, res) => {
+        const product = req.body;
+        const email = req.params.email;
+        const cartCollection = client.db("insertAssignmentNine").collection(`${email}Collection`);
+
+        const query = {_id: product._id};
+
+        const isExist = await cartCollection.findOne(query);
+
+        if (isExist) {
+            res.status(300).json({ error: "something els" });
+            return;
+        }
+
+        const result = await cartCollection.insertOne(product);
+        res.send(result);
+    })
+
+    app.delete("/cart/:email", async (req, res) => {
+        const id = req.body.id;
+        const email = req.params.email;
+        const cartCollection = client.db("insertAssignmentNine").collection(`${email}Collection`);
+        const query = {_id : id};
+        const result = await cartCollection.deleteOne(query);
+        res.send(result);
+    })
+
+    app.delete("/cart/alldelete/:email", async (req, res) => {
+        const email = req.params.email;
+        const cartCollection = client.db("insertAssignmentNine").collection(`${email}Collection`);
+
+        const result = await cartCollection.deleteMany();
+        res.send(result);
+    })
+
+    app.get("/cart/:email", async (req, res) => {
+        const email = req.params.email;
+
+        const cartCollection = client.db("insertAssignmentNine").collection(`${email}Collection`);
+
+        const cursor = cartCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
+    })
 
 
     // all functionality for post, update and get products 
@@ -76,7 +122,6 @@ async function run() {
         
         res.send(result);
     })
-
 
     app.post("/brands", async (req, res) => {
         const product = req.body;
